@@ -1,58 +1,48 @@
 import pandas as pd
-import re
+import os
 
-def process_invoice_file(input_path: str, output_path: str):
-    # Read Excel file
-    df = pd.read_excel(input_path)
+def process_invoice_file(input_path, output_path):
+    # Read the Excel file, skip the first row (contains POM info)
+    df = pd.read_excel(input_path, skiprows=1)
 
-    # Extract 'Place of Manufacture' (POM)
-    with open(input_path, 'rb') as f:
-        excel_file = pd.ExcelFile(f)
-        try:
-            first_sheet = pd.read_excel(excel_file, sheet_name=0, nrows=5, header=None)
-        except Exception:
-            raise ValueError("Unable to read the Excel file header.")
+    # Clean column names
+    df.columns = df.columns.str.strip()
 
-    pom = None
-    for row in first_sheet[0]:
-        if isinstance(row, str) and "POM:" in row:
-            match = re.search(r'POM:\s*(.*)', row)
-            if match:
-                pom = match.group(1).strip()
-                break
+    print("Columns found:", df.columns.tolist())
 
-    if not pom:
-        raise ValueError("POM not found in the first few rows of the Excel file.")
+    # Extract POM from the first row manually
+    pom_df = pd.read_excel(input_path, nrows=1, header=None)
+    pom_raw = pom_df.iloc[0, 0]
+    if isinstance(pom_raw, str) and "POM:" in pom_raw:
+        pom_value = pom_raw.split("POM:")[1].strip()
+    else:
+        pom_value = None
 
-    # Check required columns exist
-    required_cols = ["S.No", "invoice number", "Date", "Name", "Total Value", "Tax", "Manufacture Address"]
-    for col in required_cols:
-        print("Columns found:", df.columns.tolist())
+    # Check if required columns exist
+    required_columns = ["S.No", "Tax", "Total Value", "Manufacture Address"]
+    for col in required_columns:
         if col not in df.columns:
             raise ValueError(f"Missing column: {col}")
 
-    # Convert column names to consistent format
-    df["EWB"] = "NA"  # Default to NA
+    # Handle missing or zero tax
+    df["Tax"] = pd.to_numeric(df["Tax"], errors="coerce").fillna(0)
+    df["EWB"] = df["Tax"].apply(lambda x: "NA" if x == 0 else "ToCheck")
 
-    # Step 1: Mark all Tax == 0 as NA (also included in total sum)
-    # (done by default above)
+    # Calculate total turnover (include all rows even with Tax=0)
+    total_turnover = df["Total Value"].sum()
 
-    # Step 2: Get total sum of Total Value (including Tax == 0)
-    total_sum = df["Total Value"].sum()
-
-    # Step 3: Go row by row for EWB logic
-    for index, row in df.iterrows():
-        if row["Tax"] == 0:
-            df.at[index, "EWB"] = "NA"
+    # Apply Inter/Intra state logic only for rows where Tax != 0
+    def assign_ewb(row):
+        if row["EWB"] == "NA":
+            return "NA"
+        elif pom_value is not None and str(row["Manufacture Address"]).strip() != pom_value:
+            return "A"  # Interstate
         else:
-            manu_address = str(row["Manufacture Address"]).strip()
-            if manu_address != pom:
-                df.at[index, "EWB"] = "A"  # Inter-state
-            else:
-                if total_sum >= 50000:
-                    df.at[index, "EWB"] = "A"
-                else:
-                    df.at[index, "EWB"] = "NA"
+            return "A" if total_turnover >= 50000 else "NA"
 
-    # Save final file
+    df["EWB"] = df.apply(assign_ewb, axis=1)
+
+    # Save to Excel
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     df.to_excel(output_path, index=False)
+
