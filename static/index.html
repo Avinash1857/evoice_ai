@@ -2,56 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Invoice Processor</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      text-align: center;
-    }
-    h1 {
-      color: #333;
-    }
-    #uploadForm {
-      margin-top: 30px;
-    }
-    input[type="file"] {
-      margin: 10px 0;
-    }
-    button {
-      padding: 10px 20px;
-      background-color: #0066cc;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0055aa;
-    }
-    #downloadLink {
-      margin-top: 20px;
-      display: none;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>E-Voice AI</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
 </head>
 <body>
-
-  <h1>Upload Your Invoice</h1>
-
-  <form id="uploadForm">
-    <input type="file" id="fileInput" accept=".xlsx,.xls" required />
-    <br />
-    <button type="submit">Upload</button>
-  </form>
-
-  <div id="downloadLink">
-    <p>File processed successfully!</p>
-    <a id="downloadBtn" href="#" download>Download Processed File</a>
+  <div class="container">
+    <h1>E-Voice AI Invoice Analyzer</h1>
+    <form id="upload-form">
+      <input type="file" name="file" id="file" required />
+      <button type="submit">Upload</button>
+    </form>
+    <div id="status"></div>
   </div>
-
- <script src="/static/script.js"></script>
-
-
+  <script src="/static/script.js"></script>
 </body>
 </html>

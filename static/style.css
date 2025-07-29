@@ -1,0 +1,38 @@
+body {
+  background: #f4f6fa;
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+  padding: 50px;
+}
+
+.container {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  display: inline-block;
+}
+
+input[type="file"] {
+  margin: 20px 0;
+}
+
+button {
+  background: #0066ff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #0044cc;
+}
+
+#status {
+  margin-top: 20px;
+  color: green;
+  font-weight: bold;
+}

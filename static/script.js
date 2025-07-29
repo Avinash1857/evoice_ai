@@ -1,24 +1,29 @@
-document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+document.getElementById("upload-form").addEventListener("submit", async function(e) {
   e.preventDefault();
-  const fileInput = document.getElementById("fileInput");
-  const file = fileInput.files[0];
-
+  const fileInput = document.getElementById("file");
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append("file", fileInput.files[0]);
 
-  const res = await fetch("/upload", {
-    method: "POST",
-    body: formData,
-  });
+  const status = document.getElementById("status");
+  status.innerText = "Processing...";
 
-  const data = await res.json();
-  const downloadLink = document.getElementById("downloadLink");
-  const downloadBtn = document.getElementById("downloadBtn");
+  try {
+    const response = await fetch("/upload", {
+      method: "POST",
+      body: formData
+    });
 
-  if (data.download_url) {
-    downloadBtn.href = data.download_url;
-    downloadLink.style.display = 'block';
-  } else {
-    alert("Error processing file.");
+    if (response.ok) {
+      const blob = await response.blob();
+      const link = document.createElement("a");
+      link.href = window.URL.createObjectURL(blob);
+      link.download = "Processed_File.xlsx";
+      link.click();
+      status.innerText = "✅ Download ready!";
+    } else {
+      status.innerText = "❌ Processing failed.";
+    }
+  } catch (error) {
+    status.innerText = "❌ Error occurred.";
   }
 });

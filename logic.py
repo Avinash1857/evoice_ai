@@ -27,6 +27,7 @@ def process_invoice_file(input_path: str, output_path: str):
     # Check required columns exist
     required_cols = ["S.No", "invoice number", "Date", "Name", "Total Value", "Tax", "Manufacture Address"]
     for col in required_cols:
+        print("Columns found:", df.columns.tolist())
         if col not in df.columns:
             raise ValueError(f"Missing column: {col}")
 
